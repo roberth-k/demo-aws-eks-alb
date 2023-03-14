@@ -110,9 +110,8 @@ output "oidc_provider_url" {
 }
 
 resource "aws_eks_node_group" "main" {
-  ami_type        = "AL2_ARM_64"
   cluster_name    = aws_eks_cluster.main.name
-  instance_types  = ["t4g.small"]
+  instance_types  = ["t3.small"]
   node_group_name = "main"
   node_role_arn   = aws_iam_role.node.arn
 

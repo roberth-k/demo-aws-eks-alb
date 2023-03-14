@@ -36,6 +36,26 @@ resource "aws_eks_cluster" "main" {
   }
 }
 
+output "name" {
+  value = aws_eks_cluster.main.name
+}
+
+output "endpoint" {
+  value = aws_eks_cluster.main.endpoint
+}
+
+output "ca_certificate" {
+  value = aws_eks_cluster.main.certificate_authority[0].data
+}
+
+data "aws_eks_cluster_auth" "main" {
+  name = aws_eks_cluster.main.name
+}
+
+output "token" {
+  value = data.aws_eks_cluster_auth.main.token
+}
+
 resource "aws_cloudwatch_log_group" "main" {
   name = "/aws/eks/${var.cluster_name}/cluster"
 }
@@ -79,6 +99,14 @@ resource "aws_iam_openid_connect_provider" "main" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.cluster.certificates[0].sha1_fingerprint]
   url             = data.tls_certificate.cluster.url
+}
+
+output "oidc_provider_arn" {
+  value = aws_iam_openid_connect_provider.main.arn
+}
+
+output "oidc_provider_url" {
+  value = aws_iam_openid_connect_provider.main.url
 }
 
 resource "aws_eks_node_group" "main" {

@@ -6,6 +6,16 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4.58"
     }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.18"
+    }
+
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.9"
+    }
   }
 }
 
@@ -38,4 +48,24 @@ module "eks_cluster" {
   cluster_name       = "demo"
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
+}
+
+provider "kubernetes" {
+  host                   = module.eks_cluster.endpoint
+  cluster_ca_certificate = base64decode(module.eks_cluster.ca_certificate)
+  token                  = module.eks_cluster.token
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks_cluster.endpoint
+    cluster_ca_certificate = base64decode(module.eks_cluster.ca_certificate)
+    token                  = module.eks_cluster.token
+  }
+}
+
+module "eks_load_balancer_controller" {
+  source = "./modules/eks_load_balancer_controller"
+
+  eks_cluster = module.eks_cluster
 }

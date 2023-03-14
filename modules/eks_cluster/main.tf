@@ -80,3 +80,40 @@ resource "aws_iam_openid_connect_provider" "main" {
   thumbprint_list = [data.tls_certificate.cluster.certificates[0].sha1_fingerprint]
   url             = data.tls_certificate.cluster.url
 }
+
+resource "aws_eks_node_group" "main" {
+  ami_type        = "AL2_ARM_64"
+  cluster_name    = aws_eks_cluster.main.name
+  instance_types  = ["t4g.small"]
+  node_group_name = "main"
+  node_role_arn   = aws_iam_role.node.arn
+
+  scaling_config {
+    desired_size = 2
+    max_size     = 4
+    min_size     = 2
+  }
+
+  subnet_ids = var.private_subnet_ids
+}
+
+resource "aws_iam_role" "node" {
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = {
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }
+  })
+
+  // Required policies from:
+  // https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+  ]
+}

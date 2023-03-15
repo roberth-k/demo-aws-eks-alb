@@ -36,7 +36,7 @@ resource "aws_iam_role" "main" {
   }
 }
 
-resource "kubernetes_service_account" "main" {
+resource "kubernetes_service_account_v1" "main" {
   metadata {
     labels = {
       "app.kubernetes.io/component" : "controller"
@@ -69,6 +69,6 @@ resource "helm_release" "main" {
 
   set {
     name  = "serviceAccount.name"
-    value = kubernetes_service_account.main.metadata[0].name
+    value = kubernetes_service_account_v1.main.metadata[0].name
   }
 }

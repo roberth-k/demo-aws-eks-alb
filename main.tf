@@ -80,3 +80,7 @@ module "eks_load_balancer_controller" {
 
   eks_cluster = module.eks_cluster
 }
+
+module "httpbin_service" {
+  source = "./modules/httpbin_service"
+}

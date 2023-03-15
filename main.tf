@@ -40,6 +40,16 @@ module "vpc" {
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
 
   enable_nat_gateway = true
+
+  // Tags from: https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = "1"
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = "1"
+  }
 }
 
 module "eks_cluster" {

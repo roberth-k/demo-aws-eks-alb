@@ -10,6 +10,10 @@ variable "private_subnet_ids" {
   type = set(string)
 }
 
+variable "public_subnet_ids" {
+  type = set(string)
+}
+
 resource "aws_eks_cluster" "main" {
   depends_on = [
     aws_cloudwatch_log_group.main,
@@ -31,7 +35,7 @@ resource "aws_eks_cluster" "main" {
 
   vpc_config {
     endpoint_public_access = true // WARNING: Bastion would be safer -- this is for demo only.
-    subnet_ids             = var.private_subnet_ids
+    subnet_ids             = setunion(var.private_subnet_ids, var.public_subnet_ids)
     security_group_ids     = [aws_security_group.main.id]
   }
 }

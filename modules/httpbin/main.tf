@@ -1,6 +1,7 @@
 locals {
-  name = "httpbin"
-  port = 80
+  name  = "httpbin"
+  image = "kennethreitz/httpbin:latest"
+  port  = 80
 }
 
 resource "kubernetes_deployment_v1" "main" {
@@ -29,7 +30,7 @@ resource "kubernetes_deployment_v1" "main" {
 
       spec {
         container {
-          image = "kennethreitz/httpbin:latest"
+          image = local.image
           name  = local.name
 
           port {
@@ -66,6 +67,10 @@ resource "kubernetes_service_v1" "main" {
 }
 
 resource "kubernetes_ingress_v1" "main" {
+  depends_on = [
+    kubernetes_service_v1.main,
+  ]
+
   metadata {
     name = local.name
 
@@ -79,11 +84,17 @@ resource "kubernetes_ingress_v1" "main" {
   spec {
     default_backend {
       service {
-        name = kubernetes_service_v1.main.metadata[0].name
+        name = local.name
         port {
           number = local.port
         }
       }
     }
   }
+
+  wait_for_load_balancer = true
+}
+
+output "ingress_host" {
+  value = kubernetes_ingress_v1.main.status[0].load_balancer[0].ingress[0].hostname
 }

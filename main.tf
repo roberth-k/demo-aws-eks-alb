@@ -52,8 +52,12 @@ module "vpc" {
   }
 }
 
-module "eks_cluster" {
-  source = "./modules/eks_cluster"
+module "cluster" {
+  source = "./modules/cluster"
+
+  depends_on = [
+    module.vpc,
+  ]
 
   cluster_name       = "demo"
   vpc_id             = module.vpc.vpc_id
@@ -62,25 +66,27 @@ module "eks_cluster" {
 }
 
 provider "kubernetes" {
-  host                   = module.eks_cluster.endpoint
-  cluster_ca_certificate = base64decode(module.eks_cluster.ca_certificate)
-  token                  = module.eks_cluster.token
+  host                   = module.cluster.endpoint
+  cluster_ca_certificate = base64decode(module.cluster.ca_certificate)
+  token                  = module.cluster.token
 }
 
 provider "helm" {
   kubernetes {
-    host                   = module.eks_cluster.endpoint
-    cluster_ca_certificate = base64decode(module.eks_cluster.ca_certificate)
-    token                  = module.eks_cluster.token
+    host                   = module.cluster.endpoint
+    cluster_ca_certificate = base64decode(module.cluster.ca_certificate)
+    token                  = module.cluster.token
   }
 }
 
-module "eks_load_balancer_controller" {
-  source = "./modules/eks_load_balancer_controller"
+module "httpbin" {
+  source = "./modules/httpbin"
 
-  eks_cluster = module.eks_cluster
+  depends_on = [
+    module.cluster,
+  ]
 }
 
-module "httpbin_service" {
-  source = "./modules/httpbin_service"
+output "httpbin_ingress_host" {
+  value = module.httpbin.ingress_host
 }

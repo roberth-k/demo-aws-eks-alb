@@ -63,6 +63,13 @@ module "cluster" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
   public_subnet_ids  = module.vpc.public_subnets
+
+  node_group_instance_type = "t3.small"
+  node_group_scaling_config = {
+    max_size     = 4
+    desired_size = 2
+    min_size     = 1
+  }
 }
 
 provider "kubernetes" {

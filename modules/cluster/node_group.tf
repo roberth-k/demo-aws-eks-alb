@@ -4,14 +4,14 @@ resource "aws_eks_node_group" "main" {
   ]
 
   cluster_name    = aws_eks_cluster.main.name
-  instance_types  = ["t3.small"]
+  instance_types  = [var.node_group_instance_type]
   node_group_name = "main"
   node_role_arn   = aws_iam_role.node.arn
 
   scaling_config {
-    desired_size = 2
-    max_size     = 4
-    min_size     = 2
+    desired_size = var.node_group_scaling_config.desired_size
+    max_size     = var.node_group_scaling_config.max_size
+    min_size     = var.node_group_scaling_config.min_size
   }
 
   subnet_ids = var.private_subnet_ids

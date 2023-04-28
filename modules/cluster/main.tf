@@ -14,6 +14,18 @@ variable "public_subnet_ids" {
   type = set(string)
 }
 
+variable "node_group_instance_type" {
+  type = string
+}
+
+variable "node_group_scaling_config" {
+  type = object({
+    desired_size = number
+    max_size     = number
+    min_size     = number
+  })
+}
+
 output "endpoint" {
   value = aws_eks_cluster.main.endpoint
 }

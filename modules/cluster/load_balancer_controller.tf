@@ -2,6 +2,18 @@
 
 data "http" "load_balancer_controller_policy" {
   url = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.7/docs/install/iam_policy.json"
+
+  lifecycle {
+    postcondition {
+      condition     = self.status_code == 200
+      error_message = "Expected response status 200."
+    }
+
+    postcondition {
+      condition     = md5(self.response_body) == "bf77c617d67fe9ad984ef3e238285022"
+      error_message = "Response signature mismatch."
+    }
+  }
 }
 
 resource "aws_iam_role" "load_balancer_controller" {

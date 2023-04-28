@@ -1,3 +1,7 @@
+variable "push_initial_image" {
+  type = bool
+}
+
 locals {
   name = "httpbin"
   port = 80
@@ -25,6 +29,8 @@ data "aws_ecr_authorization_token" "main" {
 }
 
 resource "null_resource" "upload_image_to_ecr" {
+  count = var.push_initial_image ? 1 : 0
+
   provisioner "local-exec" {
     when = create
 
@@ -46,7 +52,11 @@ EOF
 }
 
 resource "kubernetes_deployment_v1" "main" {
-  depends_on = [null_resource.upload_image_to_ecr]
+  depends_on = [
+    null_resource.upload_image_to_ecr,
+  ]
+
+  wait_for_rollout = var.push_initial_image // Without an image, the deployment would never converge.
 
   metadata {
     name = local.name

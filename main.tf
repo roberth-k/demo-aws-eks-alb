@@ -92,6 +92,8 @@ module "httpbin" {
   depends_on = [
     module.cluster,
   ]
+
+  push_initial_image = true
 }
 
 output "httpbin_ingress_host" {

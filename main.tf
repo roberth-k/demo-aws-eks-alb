@@ -97,3 +97,11 @@ module "httpbin" {
 output "httpbin_ingress_host" {
   value = module.httpbin.ingress_host
 }
+
+output "httpbin_registry_url" {
+  value = module.httpbin.ecr_registry_url
+}
+
+output "httpbin_repository_url" {
+  value = module.httpbin.ecr_repository_url
+}

@@ -1,10 +1,53 @@
 locals {
-  name  = "httpbin"
-  image = "kennethreitz/httpbin:latest"
-  port  = 80
+  name = "httpbin"
+  port = 80
+}
+
+resource "aws_ecr_repository" "main" {
+  name         = local.name
+  force_delete = true
+}
+
+locals {
+  ecr_registry_url = split("/", aws_ecr_repository.main.repository_url)[0]
+}
+
+output "ecr_registry_url" {
+  value = local.ecr_registry_url
+}
+
+output "ecr_repository_url" {
+  value = aws_ecr_repository.main.repository_url
+}
+
+data "aws_ecr_authorization_token" "main" {
+  registry_id = aws_ecr_repository.main.registry_id
+}
+
+resource "null_resource" "upload_image_to_ecr" {
+  provisioner "local-exec" {
+    when = create
+
+    environment = {
+      // The environment variable hides the value from output.
+      ECR_REGISTRY_PASSWORD = nonsensitive(data.aws_ecr_authorization_token.main.password)
+    }
+
+    command = <<EOF
+echo $ECR_REGISTRY_PASSWORD | docker login --username AWS --password-stdin ${local.ecr_registry_url}
+
+docker pull kennethreitz/httpbin:latest
+
+docker tag kennethreitz/httpbin:latest ${aws_ecr_repository.main.repository_url}:latest
+
+docker push ${aws_ecr_repository.main.repository_url}:latest
+EOF
+  }
 }
 
 resource "kubernetes_deployment_v1" "main" {
+  depends_on = [null_resource.upload_image_to_ecr]
+
   metadata {
     name = local.name
     labels = {
@@ -30,7 +73,7 @@ resource "kubernetes_deployment_v1" "main" {
 
       spec {
         container {
-          image = local.image
+          image = "${aws_ecr_repository.main.repository_url}:latest" // Permission granted via EKS node role.
           name  = local.name
 
           port {
@@ -48,7 +91,7 @@ resource "kubernetes_service_v1" "main" {
   ]
 
   metadata {
-    name = "httpbin"
+    name = local.name
   }
 
   spec {

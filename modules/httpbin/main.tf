@@ -1,5 +1,6 @@
 variable "push_initial_image" {
-  type = bool
+  type        = bool
+  description = "When true, the module will run Docker CLI commands on this machine to push an initial image to ECR."
 }
 
 locals {

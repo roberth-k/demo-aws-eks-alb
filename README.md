@@ -13,7 +13,7 @@ Minimal demo: AWS EKS with ALB
   - EKS Node Group (2x `t3.small`): 2*0.0208 $/hr
   - Application Load Balancer: 0.0252 $/hr
 - To deploy it, run `terraform init` followed by `terraform apply`. It takes ~15 minutes to complete.
-    - To seed the ECR repository of the `httpbin` service, the module will use a provisioner to execute local `docker` commands.
+    - To seed the ECR repository of the `httpbin` service, the module will use a provisioner to execute local `docker` commands. To switch this behaviour off, set the `push_initial_image` variable of the module to `false`.
 - Upon completion, the cluster will run [httpbin](https://github.com/postmanlabs/httpbin) fronted by an ALB. The ALB hostname is given by the `httpbin_ingress_host` output value.
 - You might see `Warning: "default_secret_name" is no longer applicable for Kubernetes v1.24.0 and above`. Although it doesn't apply to this demo, this warning can't be suppressed (see [this issue](https://github.com/hashicorp/terraform-provider-kubernetes/issues/1990)).
 - To tear it down, run `terraform destroy`.
